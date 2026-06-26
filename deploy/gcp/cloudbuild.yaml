@@ -1,0 +1,99 @@
+# ── Cloud Build CI/CD pipeline ────────────────────────────────────────────────
+# Triggered on push to main branch.
+# Substitutions set in Cloud Build trigger UI:
+#   _REGION, _SA_EMAIL
+# ─────────────────────────────────────────────────────────────────────────────
+substitutions:
+  _REGION: asia-south1
+  _AR_REPO: smart-classroom
+  _SA_EMAIL: smart-classroom-sa@${PROJECT_ID}.iam.gserviceaccount.com
+
+steps:
+  # ── 1. Build backend image ────────────────────────────────────────────────
+  - name: gcr.io/cloud-builders/docker
+    id: build-backend
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/backend:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/backend:latest
+      - -f
+      - Dockerfile
+      - .
+
+  # ── 2. Build frontend image ───────────────────────────────────────────────
+  - name: gcr.io/cloud-builders/docker
+    id: build-frontend
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/frontend:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/frontend:latest
+      - -f
+      - frontend/Dockerfile
+      - frontend/
+
+  # ── 3. Push images (parallel) ─────────────────────────────────────────────
+  - name: gcr.io/cloud-builders/docker
+    id: push-backend
+    waitFor: [build-backend]
+    args: [push, --all-tags, ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/backend]
+
+  - name: gcr.io/cloud-builders/docker
+    id: push-frontend
+    waitFor: [build-frontend]
+    args: [push, --all-tags, ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/frontend]
+
+  # ── 4. Deploy backend ─────────────────────────────────────────────────────
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-backend
+    waitFor: [push-backend]
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - smart-classroom-backend
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/backend:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --service-account=${_SA_EMAIL}
+      - --allow-unauthenticated
+      - --memory=2Gi
+      - --cpu=2
+      - --min-instances=0
+      - --max-instances=5
+      - --set-env-vars=CHROMA_PERSIST_DIR=/tmp/chromadb,PYTHONUNBUFFERED=1
+      - --set-secrets=GROQ_API_KEY=SC_GROQ_API_KEY:latest,GOOGLE_SHEET_ID=SC_GOOGLE_SHEET_ID:latest,GOOGLE_DRIVE_FOLDER_ID=SC_GOOGLE_DRIVE_FOLDER_ID:latest,SECRET_KEY=SC_SECRET_KEY:latest,TWILIO_SID=SC_TWILIO_SID:latest,TWILIO_TOKEN=SC_TWILIO_TOKEN:latest,TWILIO_WHATSAPP=SC_TWILIO_WHATSAPP:latest,SENDGRID_API_KEY=SC_SENDGRID_API_KEY:latest,SENDGRID_FROM=SC_SENDGRID_FROM:latest,GOOGLE_CREDS_JSON=SC_GOOGLE_CREDS_JSON:latest
+      - --quiet
+
+  # ── 5. Fetch backend URL & deploy frontend ────────────────────────────────
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-frontend
+    waitFor: [push-frontend, deploy-backend]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        BACKEND_URL=$(gcloud run services describe smart-classroom-backend \
+          --region=${_REGION} --format='value(status.url)')
+        gcloud run deploy smart-classroom-frontend \
+          --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/frontend:$SHORT_SHA \
+          --region=${_REGION} \
+          --platform=managed \
+          --allow-unauthenticated \
+          --memory=256Mi \
+          --cpu=1 \
+          --set-env-vars="BACKEND_URL=$${BACKEND_URL}" \
+          --quiet
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/backend:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/frontend:$SHORT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_MEDIUM
+
+timeout: 1200s

@@ -1,0 +1,45 @@
+# Ignore patterns for gcloud builds (similar to .gitignore)
+.git
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local data / vector store
+data/
+chromadb/
+*.db
+
+# Dev tools
+.venv/
+venv/
+node_modules/
+.DS_Store
+
+# Docs / misc
+*.md
+docs/
+notebooks/
+*.ipynb
+
+# Test files
+tests/
+test_*.py
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Sample data (loaded via Sheets, not baked into image)
+sample_data/
+
+# Deploy scripts (not needed inside container)
+deploy/
