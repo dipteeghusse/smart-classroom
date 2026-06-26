@@ -44,4 +44,6 @@ SHEET_TABS = {
     "attendance":      "Attendance Sheet",
     "quiz":            "Student Quiz Sheet",
     "question_bank":   "Question Bank Repository",
+    "users":           "Users",               # login accounts for all roles
+    "departments":     "Departments",          # department → faculty mapping
 }

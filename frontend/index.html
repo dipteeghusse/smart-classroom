@@ -18,133 +18,280 @@
       </div>
     </div>
 
-    <nav>
-      <button class="nav-btn active" data-tab="dashboard">📊 Dashboard</button>
-      <button class="nav-btn" data-tab="attendance">📋 Attendance</button>
-      <button class="nav-btn" data-tab="questions">🧠 Question Bank</button>
-      <button class="nav-btn" data-tab="quiz">📝 Quiz</button>
-      <button class="nav-btn" data-tab="analytics">📈 Analytics</button>
-      <button class="nav-btn" data-tab="reports">📄 Reports</button>
-      <button class="nav-btn" data-tab="notify">🔔 Notifications</button>
+    <!-- User badge -->
+    <div class="user-badge">
+      <div class="user-avatar" id="nav-avatar">?</div>
+      <div>
+        <div class="user-name"  id="nav-name">—</div>
+        <div class="user-role"  id="nav-role">—</div>
+      </div>
+    </div>
+
+    <nav id="sidebar-nav">
+      <!-- Injected by JS based on role -->
     </nav>
+
+    <button class="nav-btn logout-btn" onclick="logout()">🚪 Logout</button>
   </aside>
 
   <!-- Main content -->
   <main class="content">
 
-    <!-- ── DASHBOARD ─────────────────────────────────────── -->
-    <section id="tab-dashboard" class="tab active">
+    <!-- ── DASHBOARD (hod / admin) ───────────────────────────── -->
+    <section id="tab-dashboard" class="tab">
       <h1>HoD Dashboard</h1>
       <p class="subtitle">Live department analytics — powered by AI agents</p>
-
-      <div class="card-grid" id="hod-cards">
-        <div class="stat-card" id="card-attendance">
-          <div class="stat-label">Dept Attendance</div>
-          <div class="stat-value" id="val-attendance">—</div>
-        </div>
-        <div class="stat-card" id="card-gate">
-          <div class="stat-label">GATE Readiness</div>
-          <div class="stat-value" id="val-gate">—</div>
-        </div>
-        <div class="stat-card" id="card-coverage">
-          <div class="stat-label">Syllabus Coverage</div>
-          <div class="stat-value" id="val-coverage">—</div>
-        </div>
-        <div class="stat-card" id="card-quizzes">
-          <div class="stat-label">Total Quiz Attempts</div>
-          <div class="stat-value" id="val-quizzes">—</div>
-        </div>
-        <div class="stat-card" id="card-topics">
-          <div class="stat-label">Topics Completed</div>
-          <div class="stat-value" id="val-topics">—</div>
-        </div>
+      <div class="card-grid">
+        <div class="stat-card"><div class="stat-label">Dept Attendance</div><div class="stat-value" id="val-att">—</div></div>
+        <div class="stat-card"><div class="stat-label">GATE Readiness</div><div class="stat-value" id="val-gate">—</div></div>
+        <div class="stat-card"><div class="stat-label">Syllabus Coverage</div><div class="stat-value" id="val-cov">—</div></div>
+        <div class="stat-card"><div class="stat-label">Quiz Attempts</div><div class="stat-value" id="val-quiz">—</div></div>
+        <div class="stat-card"><div class="stat-label">Topics Done</div><div class="stat-value" id="val-topics">—</div></div>
       </div>
-
-      <button class="btn primary" onclick="loadHodDashboard()">🔄 Refresh Dashboard</button>
-      <div id="dashboard-result" class="result-box hidden"></div>
+      <button class="btn primary" onclick="loadHodDashboard()">🔄 Refresh</button>
+      <div id="hod-result" class="result-box hidden"></div>
     </section>
 
-    <!-- ── ATTENDANCE ─────────────────────────────────────── -->
-    <section id="tab-attendance" class="tab">
-      <h1>Attendance Management</h1>
+    <!-- ── MY PROFILE (student) ──────────────────────────────── -->
+    <section id="tab-profile" class="tab">
+      <h1>My Profile</h1>
+      <div class="card" id="profile-card">
+        <p class="loading-text">Loading your profile…</p>
+      </div>
+      <div class="card">
+        <h2>My Performance</h2>
+        <div class="card-grid">
+          <div class="stat-card"><div class="stat-label">Attendance</div><div class="stat-value" id="st-att">—</div></div>
+          <div class="stat-card"><div class="stat-label">Avg Quiz Score</div><div class="stat-value" id="st-quiz">—</div></div>
+          <div class="stat-card"><div class="stat-label">GATE Readiness</div><div class="stat-value" id="st-gate">—</div></div>
+        </div>
+        <div id="st-weak" class="weak-topics hidden"></div>
+        <div id="st-insight" class="insight-box hidden"></div>
+      </div>
+    </section>
 
+    <!-- ── STUDENTS (admin / hod / faculty) ──────────────────── -->
+    <section id="tab-students" class="tab">
+      <h1>Student List</h1>
+      <div class="table-toolbar">
+        <input id="student-search" type="text" placeholder="Search by PRN or Name…"
+               oninput="filterTable('student-table', this.value)" />
+        <button class="btn primary small" onclick="loadStudents()">🔄 Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table id="student-table" class="data-table">
+          <thead>
+            <tr>
+              <th>PRN</th><th>Name</th><th>Class</th><th>Division</th>
+              <th>Department</th><th>Mobile</th><th>Parent Email</th>
+            </tr>
+          </thead>
+          <tbody id="student-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── FACULTY LIST (admin / hod) ────────────────────────── -->
+    <section id="tab-faculty" class="tab">
+      <h1>Faculty &amp; Course List</h1>
+      <div class="table-toolbar">
+        <input id="faculty-search" type="text" placeholder="Search by name or subject…"
+               oninput="filterTable('faculty-table', this.value)" />
+        <button class="btn primary small" onclick="loadFaculty()">🔄 Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table id="faculty-table" class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Department</th><th>Subject</th>
+              <th>Course</th><th>Semester</th><th>Email</th>
+            </tr>
+          </thead>
+          <tbody id="faculty-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── SUBJECTS / COURSES ─────────────────────────────────── -->
+    <section id="tab-subjects" class="tab">
+      <h1>Subject &amp; Course List</h1>
+      <div class="table-toolbar">
+        <input id="subject-search" type="text" placeholder="Search by code or name…"
+               oninput="filterTable('subject-table', this.value)" />
+        <button class="btn primary small" onclick="loadSubjects()">🔄 Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table id="subject-table" class="data-table">
+          <thead>
+            <tr>
+              <th>Code</th><th>Subject Name</th><th>Department</th>
+              <th>Semester</th><th>Credits</th><th>Faculty</th>
+            </tr>
+          </thead>
+          <tbody id="subject-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── LESSON PLAN ────────────────────────────────────────── -->
+    <section id="tab-lesson" class="tab">
+      <h1>Lesson Plan</h1>
+      <div class="table-toolbar">
+        <input id="lesson-subject" type="text" placeholder="Filter by Subject Code (e.g. CS501)" />
+        <button class="btn primary small" onclick="loadLessonPlan()">🔍 Filter</button>
+        <button class="btn secondary small" onclick="loadLessonPlan(true)">All</button>
+      </div>
+      <div class="table-wrap">
+        <table id="lesson-table" class="data-table">
+          <thead>
+            <tr>
+              <th>Subject</th><th>Unit</th><th>Topic No</th><th>Topic</th>
+              <th>Planned Date</th><th>Hours</th><th>CO</th><th>Bloom's</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="lesson-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── UPLOADS (admin / hod / faculty) ───────────────────── -->
+    <section id="tab-upload" class="tab">
+      <h1>Upload Data</h1>
+      <p class="subtitle">Upload CSV or Excel files to populate Google Sheets instantly.</p>
+
+      <div class="upload-grid">
+
+        <div class="card upload-card">
+          <div class="upload-icon">👥</div>
+          <h2>Student List</h2>
+          <p>PRN, Name, Class, Division, Mobile, Parent Email</p>
+          <a href="#" onclick="downloadSample('students')" class="sample-link">⬇ Download sample CSV</a>
+          <div class="file-drop" id="drop-students"
+               onclick="document.getElementById('file-students').click()"
+               ondragover="event.preventDefault()" ondrop="handleDrop(event,'students')">
+            <span id="drop-students-label">Click or drag CSV / Excel here</span>
+          </div>
+          <input type="file" id="file-students" accept=".csv,.xlsx,.xls" class="hidden"
+                 onchange="uploadFile('students', this)" />
+          <div id="result-students" class="result-box hidden"></div>
+        </div>
+
+        <div class="card upload-card">
+          <div class="upload-icon">👨‍🏫</div>
+          <h2>Faculty List</h2>
+          <p>Faculty ID, Name, Department, Subject, Email</p>
+          <a href="#" onclick="downloadSample('faculty')" class="sample-link">⬇ Download sample CSV</a>
+          <div class="file-drop" id="drop-faculty"
+               onclick="document.getElementById('file-faculty').click()"
+               ondragover="event.preventDefault()" ondrop="handleDrop(event,'faculty')">
+            <span id="drop-faculty-label">Click or drag CSV / Excel here</span>
+          </div>
+          <input type="file" id="file-faculty" accept=".csv,.xlsx,.xls" class="hidden"
+                 onchange="uploadFile('faculty', this)" />
+          <div id="result-faculty" class="result-box hidden"></div>
+        </div>
+
+        <div class="card upload-card">
+          <div class="upload-icon">📚</div>
+          <h2>Subject / Course List</h2>
+          <p>Subject Code, Name, Credits, Faculty Assigned</p>
+          <a href="#" onclick="downloadSample('subjects')" class="sample-link">⬇ Download sample CSV</a>
+          <div class="file-drop" id="drop-subjects"
+               onclick="document.getElementById('file-subjects').click()"
+               ondragover="event.preventDefault()" ondrop="handleDrop(event,'subjects')">
+            <span id="drop-subjects-label">Click or drag CSV / Excel here</span>
+          </div>
+          <input type="file" id="file-subjects" accept=".csv,.xlsx,.xls" class="hidden"
+                 onchange="uploadFile('subjects', this)" />
+          <div id="result-subjects" class="result-box hidden"></div>
+        </div>
+
+        <div class="card upload-card">
+          <div class="upload-icon">📋</div>
+          <h2>Lesson / Teaching Plan</h2>
+          <p>Unit, Topic, Planned Date, Hours, CO, Bloom's</p>
+          <a href="#" onclick="downloadSample('lesson_plan')" class="sample-link">⬇ Download sample CSV</a>
+          <div class="file-drop" id="drop-lesson_plan"
+               onclick="document.getElementById('file-lesson_plan').click()"
+               ondragover="event.preventDefault()" ondrop="handleDrop(event,'lesson_plan')">
+            <span id="drop-lesson_plan-label">Click or drag CSV / Excel here</span>
+          </div>
+          <input type="file" id="file-lesson_plan" accept=".csv,.xlsx,.xls" class="hidden"
+                 onchange="uploadFile('lesson_plan', this)" />
+          <div id="result-lesson_plan" class="result-box hidden"></div>
+        </div>
+
+        <!-- Admin only -->
+        <div class="card upload-card" id="upload-users-card" style="display:none">
+          <div class="upload-icon">🔐</div>
+          <h2>User Accounts</h2>
+          <p>ID, Name, Role, Password (plain — hashed automatically)</p>
+          <a href="#" onclick="downloadSample('users')" class="sample-link">⬇ Download sample CSV</a>
+          <div class="file-drop" id="drop-users"
+               onclick="document.getElementById('file-users').click()"
+               ondragover="event.preventDefault()" ondrop="handleDrop(event,'users')">
+            <span id="drop-users-label">Click or drag CSV / Excel here</span>
+          </div>
+          <input type="file" id="file-users" accept=".csv,.xlsx,.xls" class="hidden"
+                 onchange="uploadFile('users', this)" />
+          <div id="result-users" class="result-box hidden"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── ATTENDANCE ─────────────────────────────────────────── -->
+    <section id="tab-attendance" class="tab">
+      <h1>Attendance</h1>
       <div class="two-col">
-        <!-- QR Generator -->
         <div class="card">
-          <h2>Generate QR Code</h2>
+          <h2>Generate QR Code <span class="badge">Faculty</span></h2>
           <label>Lecture ID</label>
           <input id="qr-lecture-id" type="text" placeholder="e.g. CS501-L001" />
           <button class="btn primary" onclick="generateQR()">Generate QR</button>
           <div id="qr-result" class="qr-container hidden">
             <img id="qr-image" src="" alt="QR Code" />
             <p id="qr-token-display"></p>
-            <p id="qr-expiry-display"></p>
+            <p id="qr-expiry-display" class="qr-timer"></p>
           </div>
         </div>
-
-        <!-- Mark Attendance -->
         <div class="card">
-          <h2>Mark Attendance</h2>
-          <label>Lecture ID</label>
-          <input id="att-lecture-id" type="text" placeholder="CS501-L001" />
-          <label>Lecture Number</label>
-          <input id="att-lecture-no" type="number" placeholder="1" />
-          <label>Subject Code</label>
-          <input id="att-subject" type="text" placeholder="CS501" />
-          <label>Date</label>
-          <input id="att-date" type="date" />
-          <label>Student PRN</label>
-          <input id="att-prn" type="text" placeholder="MIT2024001" />
-          <label>Student Name</label>
-          <input id="att-name" type="text" placeholder="Student Name" />
-          <label>QR Token</label>
-          <input id="att-token" type="text" placeholder="Paste token from QR" />
-          <label>Student GPS (lat, lon)</label>
-          <input id="att-student-gps" type="text" placeholder="18.5204, 73.8567" />
-          <label>Classroom GPS (lat, lon)</label>
-          <input id="att-classroom-gps" type="text" placeholder="18.5204, 73.8567" />
+          <h2>Mark Attendance <span class="badge student-badge">Student</span></h2>
+          <label>Lecture ID</label><input id="att-lid" type="text" placeholder="CS501-L001" />
+          <label>Lecture No</label><input id="att-lno" type="number" placeholder="1" />
+          <label>Subject Code</label><input id="att-sub" type="text" placeholder="CS501" />
+          <label>Date</label><input id="att-date" type="date" />
+          <label>Student PRN</label><input id="att-prn" type="text" placeholder="MIT2024001" />
+          <label>Student Name</label><input id="att-name" type="text" placeholder="Name" />
+          <label>QR Token</label><input id="att-tok" type="text" placeholder="Paste token" />
+          <label>Your GPS (lat, lon)</label><input id="att-sgps" type="text" placeholder="18.5204, 73.8567" />
+          <label>Classroom GPS (lat, lon)</label><input id="att-cgps" type="text" placeholder="18.5204, 73.8567" />
           <button class="btn primary" onclick="markAttendance()">✅ Mark Attendance</button>
           <div id="att-result" class="result-box hidden"></div>
         </div>
       </div>
     </section>
 
-    <!-- ── QUESTION BANK ──────────────────────────────────── -->
+    <!-- ── QUESTION BANK ──────────────────────────────────────── -->
     <section id="tab-questions" class="tab">
       <h1>GATE Question Generator</h1>
-      <p class="subtitle">Generates 45 questions per topic: Easy/Medium/GATE MCQs + Numerical + Assertion-Reason + Conceptual</p>
-
+      <p class="subtitle">Generates 45 questions per topic using RAG + Groq (10–60 seconds)</p>
       <div class="card">
         <div class="form-row">
-          <div>
-            <label>Subject Code</label>
-            <input id="q-subject" type="text" placeholder="CS501" />
-          </div>
-          <div>
-            <label>Unit Number</label>
-            <input id="q-unit" type="number" placeholder="1" />
-          </div>
-          <div>
-            <label>Topic Number</label>
-            <input id="q-topic-no" type="text" placeholder="1.2" />
-          </div>
+          <div><label>Subject Code</label><input id="q-sub" type="text" placeholder="CS501" /></div>
+          <div><label>Unit</label><input id="q-unit" type="number" placeholder="1" /></div>
+          <div><label>Topic No</label><input id="q-tno" type="text" placeholder="1.2" /></div>
         </div>
         <label>Topic Name</label>
         <input id="q-topic" type="text" placeholder="e.g. Convolutional Neural Networks" />
         <div class="form-row">
-          <div>
-            <label>CO Mapping</label>
-            <input id="q-co" type="text" placeholder="CO2" />
-          </div>
+          <div><label>CO Mapping</label><input id="q-co" type="text" placeholder="CO2" /></div>
           <div>
             <label>Bloom's Level</label>
             <select id="q-blooms">
-              <option>Remember</option>
-              <option>Understand</option>
-              <option selected>Apply</option>
-              <option>Analyse</option>
-              <option>Evaluate</option>
-              <option>Create</option>
+              <option>Remember</option><option>Understand</option>
+              <option selected>Apply</option><option>Analyse</option>
+              <option>Evaluate</option><option>Create</option>
             </select>
           </div>
         </div>
@@ -153,74 +300,54 @@
       </div>
     </section>
 
-    <!-- ── QUIZ ───────────────────────────────────────────── -->
+    <!-- ── QUIZ ───────────────────────────────────────────────── -->
     <section id="tab-quiz" class="tab">
       <h1>Quiz Evaluation</h1>
-
       <div class="card">
         <div class="form-row">
-          <div>
-            <label>Student PRN</label>
-            <input id="qz-prn" type="text" placeholder="MIT2024001" />
-          </div>
-          <div>
-            <label>Student Name</label>
-            <input id="qz-name" type="text" placeholder="Student Name" />
-          </div>
+          <div><label>Student PRN</label><input id="qz-prn" type="text" placeholder="MIT2024001" /></div>
+          <div><label>Student Name</label><input id="qz-name" type="text" placeholder="Name" /></div>
         </div>
         <div class="form-row">
-          <div>
-            <label>Subject Code</label>
-            <input id="qz-subject" type="text" placeholder="CS501" />
-          </div>
-          <div>
-            <label>Topic Number</label>
-            <input id="qz-topic" type="text" placeholder="1.2" />
-          </div>
-          <div>
-            <label>Lecture Number</label>
-            <input id="qz-lecture" type="number" placeholder="5" />
-          </div>
+          <div><label>Subject Code</label><input id="qz-sub" type="text" placeholder="CS501" /></div>
+          <div><label>Topic No</label><input id="qz-topic" type="text" placeholder="1.2" /></div>
+          <div><label>Lecture No</label><input id="qz-lno" type="number" placeholder="5" /></div>
         </div>
-        <label>Student Answers (JSON)</label>
+        <label>Student Answers (JSON array)</label>
         <textarea id="qz-answers" rows="4"
           placeholder='[{"question_id":"Q1","selected":"A"},{"question_id":"Q2","selected":"C"}]'></textarea>
-        <label>Answer Key (JSON)</label>
-        <textarea id="qz-key" rows="3"
-          placeholder='{"Q1":"A","Q2":"B","Q3":"C"}'></textarea>
+        <label>Answer Key (JSON object)</label>
+        <textarea id="qz-key" rows="3" placeholder='{"Q1":"A","Q2":"B","Q3":"C"}'></textarea>
         <button class="btn primary" onclick="evaluateQuiz()">📝 Evaluate Quiz</button>
         <div id="qz-result" class="result-box hidden"></div>
       </div>
     </section>
 
-    <!-- ── ANALYTICS ──────────────────────────────────────── -->
+    <!-- ── ANALYTICS ──────────────────────────────────────────── -->
     <section id="tab-analytics" class="tab">
       <h1>Analytics</h1>
-
       <div class="two-col">
         <div class="card">
           <h2>Student Analytics</h2>
           <label>Student PRN</label>
           <input id="an-prn" type="text" placeholder="MIT2024001" />
           <button class="btn primary" onclick="getStudentAnalytics()">📈 Get Report</button>
-          <div id="an-student-result" class="result-box hidden"></div>
+          <div id="an-student" class="result-box hidden"></div>
         </div>
-
         <div class="card">
           <h2>Faculty Analytics</h2>
           <label>Faculty ID</label>
           <input id="an-fid" type="text" placeholder="FAC001" />
           <button class="btn primary" onclick="getFacultyAnalytics()">📊 Get Report</button>
-          <div id="an-faculty-result" class="result-box hidden"></div>
+          <div id="an-faculty" class="result-box hidden"></div>
         </div>
       </div>
     </section>
 
-    <!-- ── REPORTS ─────────────────────────────────────────── -->
+    <!-- ── REPORTS ─────────────────────────────────────────────── -->
     <section id="tab-reports" class="tab">
       <h1>Report Generator</h1>
-      <p class="subtitle">Exports are uploaded to Google Shared Drive and a link is returned.</p>
-
+      <p class="subtitle">Exports are uploaded to Google Shared Drive and a download link is returned.</p>
       <div class="card">
         <label>Report Type</label>
         <select id="rpt-type">
@@ -235,22 +362,21 @@
           <label><input type="checkbox" id="rpt-xlsx" checked /> XLSX</label>
           <label><input type="checkbox" id="rpt-docx" /> DOCX</label>
         </div>
-        <button class="btn primary" onclick="generateReport()">📄 Generate & Upload</button>
+        <button class="btn primary" onclick="generateReport()">📄 Generate &amp; Upload to Drive</button>
         <div id="rpt-result" class="result-box hidden"></div>
       </div>
     </section>
 
-    <!-- ── NOTIFICATIONS ──────────────────────────────────── -->
+    <!-- ── NOTIFICATIONS ──────────────────────────────────────── -->
     <section id="tab-notify" class="tab">
       <h1>Parent Notifications</h1>
-      <p class="subtitle">Automatically identifies students below 75% attendance and alerts parents.</p>
-
+      <p class="subtitle">Auto-identifies students below 75% attendance and alerts parents via WhatsApp + Email.</p>
       <div class="card">
-        <label>Subject Code (optional)</label>
-        <input id="nt-subject" type="text" placeholder="Leave blank for all subjects" />
+        <label>Subject Code (leave blank for all)</label>
+        <input id="nt-sub" type="text" placeholder="CS501" />
         <label>Faculty Email</label>
         <input id="nt-email" type="email" placeholder="faculty@mitaoe.ac.in" />
-        <button class="btn danger" onclick="sendNotifications()">🔔 Send Alerts to Parents</button>
+        <button class="btn danger" onclick="sendNotifications()">🔔 Send Alerts</button>
         <div id="nt-result" class="result-box hidden"></div>
       </div>
     </section>

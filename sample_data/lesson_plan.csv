@@ -1,0 +1,21 @@
+Subject Code,Unit Number,Topic Number,Topic Name,Planned Date,Planned Hours,Course Outcome,Blooms Level,Status
+CS501,1,1.1,Introduction to Neural Networks,2026-07-01,2,CO1,Understand,Pending
+CS501,1,1.2,Activation Functions,2026-07-03,2,CO1,Apply,Pending
+CS501,1,1.3,Backpropagation Algorithm,2026-07-07,3,CO1,Analyse,Pending
+CS501,1,1.4,Gradient Descent Variants,2026-07-10,2,CO2,Apply,Pending
+CS501,2,2.1,Convolutional Neural Networks,2026-07-14,3,CO2,Apply,Pending
+CS501,2,2.2,CNN Architectures (VGG ResNet),2026-07-17,2,CO2,Analyse,Pending
+CS501,2,2.3,Transfer Learning,2026-07-21,2,CO3,Apply,Pending
+CS501,3,3.1,Recurrent Neural Networks,2026-07-24,2,CO3,Apply,Pending
+CS501,3,3.2,LSTM and GRU,2026-07-28,3,CO3,Analyse,Pending
+CS501,3,3.3,Attention Mechanism,2026-07-31,2,CO4,Evaluate,Pending
+CS501,4,4.1,Transformers Architecture,2026-08-04,3,CO4,Evaluate,Pending
+CS501,4,4.2,BERT and GPT Family,2026-08-07,2,CO4,Evaluate,Pending
+CS501,5,5.1,Generative Adversarial Networks,2026-08-11,2,CO5,Create,Pending
+CS501,5,5.2,Variational Autoencoders,2026-08-14,2,CO5,Create,Pending
+CS502,1,1.1,Introduction to ML,2026-07-01,2,CO1,Understand,Pending
+CS502,1,1.2,Supervised Learning,2026-07-03,2,CO1,Apply,Pending
+CS502,1,1.3,Linear Regression,2026-07-07,2,CO1,Apply,Pending
+CS502,2,2.1,Decision Trees,2026-07-14,2,CO2,Apply,Pending
+CS502,2,2.2,Random Forests,2026-07-17,2,CO2,Analyse,Pending
+CS502,2,2.3,SVM Classification,2026-07-21,3,CO2,Analyse,Pending

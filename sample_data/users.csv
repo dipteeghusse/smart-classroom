@@ -1,0 +1,8 @@
+ID,Name,Role,Department,Class,Division,Password_Hash
+MIT2024001,Aarav Sharma,student,CSE AI&ML,SE,A,student123
+MIT2024002,Priya Patil,student,CSE AI&ML,SE,A,student123
+MIT2024003,Rohan Desai,student,CSE AI&ML,SE,A,student123
+FAC001,Dr. Priya Sharma,faculty,CSE AI&ML,,, faculty123
+FAC002,Prof. Ramesh Patil,faculty,CSE AI&ML,,,faculty123
+HOD001,Dr. Anita Verma,hod,CSE AI&ML,,,hod123
+ADMIN001,Admin User,admin,MITAOE,,,admin123

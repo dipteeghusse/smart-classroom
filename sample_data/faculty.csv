@@ -1,0 +1,9 @@
+Faculty ID,Faculty Name,Department,Subject,Course,Semester,Mobile Number,Email
+FAC001,Dr. Priya Sharma,CSE AI&ML,Deep Learning,B.Tech,5,9823001001,priya.sharma@mitaoe.ac.in
+FAC002,Prof. Ramesh Patil,CSE AI&ML,Machine Learning,B.Tech,5,9823001002,ramesh.patil@mitaoe.ac.in
+FAC003,Dr. Sunita Desai,CSE AI&ML,Natural Language Processing,B.Tech,7,9823001003,sunita.desai@mitaoe.ac.in
+FAC004,Prof. Ajay Kulkarni,CSE AI&ML,Computer Vision,B.Tech,7,9823001004,ajay.kulkarni@mitaoe.ac.in
+FAC005,Dr. Meena Joshi,CSE AI&ML,Data Structures,B.Tech,3,9823001005,meena.joshi@mitaoe.ac.in
+FAC006,Prof. Vikas Mehta,CSE AI&ML,Algorithms,B.Tech,3,9823001006,vikas.mehta@mitaoe.ac.in
+FAC007,Dr. Lata Nair,CSE AI&ML,Generative AI,B.Tech,7,9823001007,lata.nair@mitaoe.ac.in
+FAC008,Prof. Dinesh Rao,CSE AI&ML,Cloud Computing,B.Tech,5,9823001008,dinesh.rao@mitaoe.ac.in

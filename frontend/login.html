@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Smart Classroom MITAOE</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      padding: 16px;
+    }
+
+    .login-wrap {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-header .icon { font-size: 48px; }
+    .login-header h1  { color: #f1f5f9; font-size: 22px; margin-top: 10px; }
+    .login-header p   { color: #64748b; font-size: 13px; margin-top: 4px; }
+
+    .login-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    /* Role selector pills */
+    .role-pills {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .role-pill {
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-600);
+      background: var(--gray-50);
+    }
+    .role-pill .role-icon { display: block; font-size: 22px; margin-bottom: 4px; }
+    .role-pill.active {
+      border-color: var(--blue);
+      background: var(--blue-lt);
+      color: var(--blue);
+    }
+
+    .login-card label { margin-top: 16px; }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 24px;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .error-msg {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      color: #dc2626;
+      font-size: 13px;
+      display: none;
+    }
+
+    .demo-hint {
+      margin-top: 20px;
+      padding: 12px;
+      background: var(--gray-100);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+    .demo-hint strong { color: var(--gray-800); }
+    .demo-row { display: flex; justify-content: space-between; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-header">
+    <div class="icon">🎓</div>
+    <h1>Smart Classroom</h1>
+    <p>MITAOE · CSE AI &amp; ML Department</p>
+  </div>
+
+  <div class="login-card">
+    <p style="font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:10px;">SELECT YOUR ROLE</p>
+
+    <div class="role-pills">
+      <div class="role-pill active" data-role="student" onclick="selectRole(this)">
+        <span class="role-icon">🎓</span>Student
+      </div>
+      <div class="role-pill" data-role="faculty" onclick="selectRole(this)">
+        <span class="role-icon">👨‍🏫</span>Faculty
+      </div>
+      <div class="role-pill" data-role="hod" onclick="selectRole(this)">
+        <span class="role-icon">🏛️</span>HoD
+      </div>
+      <div class="role-pill" data-role="admin" onclick="selectRole(this)">
+        <span class="role-icon">⚙️</span>Admin
+      </div>
+    </div>
+
+    <label id="id-label">Student PRN / Roll Number</label>
+    <input id="user-id" type="text" placeholder="e.g. MIT2024001" autocomplete="username" />
+
+    <label>Password</label>
+    <input id="password" type="password" placeholder="Enter password"
+           autocomplete="current-password"
+           onkeydown="if(event.key==='Enter') doLogin()" />
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <button class="btn primary login-btn" onclick="doLogin()">Login →</button>
+
+    <!-- Demo credentials hint -->
+    <div class="demo-hint">
+      <strong>Demo credentials:</strong>
+      <div class="demo-row"><span>Student</span><span>MIT2024001 / student123</span></div>
+      <div class="demo-row"><span>Faculty</span><span>FAC001 / faculty123</span></div>
+      <div class="demo-row"><span>HoD</span><span>HOD001 / hod123</span></div>
+      <div class="demo-row"><span>Admin</span><span>ADMIN001 / admin123</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = "http://localhost:8080";
+  let selectedRole = "student";
+
+  const ID_LABELS = {
+    student: "Student PRN / Roll Number",
+    faculty: "Faculty ID",
+    hod:     "HoD ID",
+    admin:   "Admin ID",
+  };
+
+  function selectRole(pill) {
+    document.querySelectorAll(".role-pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    selectedRole = pill.dataset.role;
+    document.getElementById("id-label").textContent = ID_LABELS[selectedRole];
+    document.getElementById("user-id").placeholder =
+      selectedRole === "student" ? "e.g. MIT2024001"
+      : selectedRole === "faculty" ? "e.g. FAC001"
+      : selectedRole === "hod"     ? "e.g. HOD001"
+      : "e.g. ADMIN001";
+  }
+
+  async function doLogin() {
+    const btn   = document.querySelector(".login-btn");
+    const errEl = document.getElementById("error-msg");
+    const userId   = document.getElementById("user-id").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!userId || !password) {
+      showError("Please enter your ID and password.");
+      return;
+    }
+
+    btn.innerHTML = '<span class="spinner"></span>Signing in…';
+    btn.disabled  = true;
+    errEl.style.display = "none";
+
+    try {
+      const resp = await fetch(API + "/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, password }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.detail || "Login failed");
+      }
+
+      const data = await resp.json();
+
+      // Verify role matches selected pill
+      if (data.role !== selectedRole) {
+        throw new Error(`This account is a '${data.role}', not a '${selectedRole}'.`);
+      }
+
+      // Store session
+      localStorage.setItem("sc_token", data.token);
+      localStorage.setItem("sc_user",  JSON.stringify(data));
+
+      // Redirect to dashboard
+      window.location.href = "/dashboard";
+
+    } catch (e) {
+      showError(e.message);
+      btn.innerHTML = "Login →";
+      btn.disabled  = false;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("error-msg");
+    el.textContent    = msg;
+    el.style.display  = "block";
+  }
+
+  // If already logged in, go straight to dashboard
+  if (localStorage.getItem("sc_token")) {
+    window.location.href = "/dashboard";
+  }
+</script>
+
+</body>
+</html>

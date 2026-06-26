@@ -1,0 +1,9 @@
+Subject Code,Subject Name,Department,Course,Semester,Credits,Faculty Assigned
+CS501,Deep Learning,CSE AI&ML,B.Tech,5,4,FAC001
+CS502,Machine Learning,CSE AI&ML,B.Tech,5,4,FAC002
+CS503,Natural Language Processing,CSE AI&ML,B.Tech,7,3,FAC003
+CS504,Computer Vision,CSE AI&ML,B.Tech,7,4,FAC004
+CS301,Data Structures,CSE AI&ML,B.Tech,3,4,FAC005
+CS302,Algorithms,CSE AI&ML,B.Tech,3,4,FAC006
+CS701,Generative AI,CSE AI&ML,B.Tech,7,3,FAC007
+CS503,Cloud Computing,CSE AI&ML,B.Tech,5,3,FAC008
