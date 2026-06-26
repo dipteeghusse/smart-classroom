@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Classroom — MITAOE</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="logo-icon">🎓</span>
+      <div>
+        <div class="logo-title">Smart Classroom</div>
+        <div class="logo-sub">MITAOE · CSE AI&ML</div>
+      </div>
+    </div>
+
+    <nav>
+      <button class="nav-btn active" data-tab="dashboard">📊 Dashboard</button>
+      <button class="nav-btn" data-tab="attendance">📋 Attendance</button>
+      <button class="nav-btn" data-tab="questions">🧠 Question Bank</button>
+      <button class="nav-btn" data-tab="quiz">📝 Quiz</button>
+      <button class="nav-btn" data-tab="analytics">📈 Analytics</button>
+      <button class="nav-btn" data-tab="reports">📄 Reports</button>
+      <button class="nav-btn" data-tab="notify">🔔 Notifications</button>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- ── DASHBOARD ─────────────────────────────────────── -->
+    <section id="tab-dashboard" class="tab active">
+      <h1>HoD Dashboard</h1>
+      <p class="subtitle">Live department analytics — powered by AI agents</p>
+
+      <div class="card-grid" id="hod-cards">
+        <div class="stat-card" id="card-attendance">
+          <div class="stat-label">Dept Attendance</div>
+          <div class="stat-value" id="val-attendance">—</div>
+        </div>
+        <div class="stat-card" id="card-gate">
+          <div class="stat-label">GATE Readiness</div>
+          <div class="stat-value" id="val-gate">—</div>
+        </div>
+        <div class="stat-card" id="card-coverage">
+          <div class="stat-label">Syllabus Coverage</div>
+          <div class="stat-value" id="val-coverage">—</div>
+        </div>
+        <div class="stat-card" id="card-quizzes">
+          <div class="stat-label">Total Quiz Attempts</div>
+          <div class="stat-value" id="val-quizzes">—</div>
+        </div>
+        <div class="stat-card" id="card-topics">
+          <div class="stat-label">Topics Completed</div>
+          <div class="stat-value" id="val-topics">—</div>
+        </div>
+      </div>
+
+      <button class="btn primary" onclick="loadHodDashboard()">🔄 Refresh Dashboard</button>
+      <div id="dashboard-result" class="result-box hidden"></div>
+    </section>
+
+    <!-- ── ATTENDANCE ─────────────────────────────────────── -->
+    <section id="tab-attendance" class="tab">
+      <h1>Attendance Management</h1>
+
+      <div class="two-col">
+        <!-- QR Generator -->
+        <div class="card">
+          <h2>Generate QR Code</h2>
+          <label>Lecture ID</label>
+          <input id="qr-lecture-id" type="text" placeholder="e.g. CS501-L001" />
+          <button class="btn primary" onclick="generateQR()">Generate QR</button>
+          <div id="qr-result" class="qr-container hidden">
+            <img id="qr-image" src="" alt="QR Code" />
+            <p id="qr-token-display"></p>
+            <p id="qr-expiry-display"></p>
+          </div>
+        </div>
+
+        <!-- Mark Attendance -->
+        <div class="card">
+          <h2>Mark Attendance</h2>
+          <label>Lecture ID</label>
+          <input id="att-lecture-id" type="text" placeholder="CS501-L001" />
+          <label>Lecture Number</label>
+          <input id="att-lecture-no" type="number" placeholder="1" />
+          <label>Subject Code</label>
+          <input id="att-subject" type="text" placeholder="CS501" />
+          <label>Date</label>
+          <input id="att-date" type="date" />
+          <label>Student PRN</label>
+          <input id="att-prn" type="text" placeholder="MIT2024001" />
+          <label>Student Name</label>
+          <input id="att-name" type="text" placeholder="Student Name" />
+          <label>QR Token</label>
+          <input id="att-token" type="text" placeholder="Paste token from QR" />
+          <label>Student GPS (lat, lon)</label>
+          <input id="att-student-gps" type="text" placeholder="18.5204, 73.8567" />
+          <label>Classroom GPS (lat, lon)</label>
+          <input id="att-classroom-gps" type="text" placeholder="18.5204, 73.8567" />
+          <button class="btn primary" onclick="markAttendance()">✅ Mark Attendance</button>
+          <div id="att-result" class="result-box hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── QUESTION BANK ──────────────────────────────────── -->
+    <section id="tab-questions" class="tab">
+      <h1>GATE Question Generator</h1>
+      <p class="subtitle">Generates 45 questions per topic: Easy/Medium/GATE MCQs + Numerical + Assertion-Reason + Conceptual</p>
+
+      <div class="card">
+        <div class="form-row">
+          <div>
+            <label>Subject Code</label>
+            <input id="q-subject" type="text" placeholder="CS501" />
+          </div>
+          <div>
+            <label>Unit Number</label>
+            <input id="q-unit" type="number" placeholder="1" />
+          </div>
+          <div>
+            <label>Topic Number</label>
+            <input id="q-topic-no" type="text" placeholder="1.2" />
+          </div>
+        </div>
+        <label>Topic Name</label>
+        <input id="q-topic" type="text" placeholder="e.g. Convolutional Neural Networks" />
+        <div class="form-row">
+          <div>
+            <label>CO Mapping</label>
+            <input id="q-co" type="text" placeholder="CO2" />
+          </div>
+          <div>
+            <label>Bloom's Level</label>
+            <select id="q-blooms">
+              <option>Remember</option>
+              <option>Understand</option>
+              <option selected>Apply</option>
+              <option>Analyse</option>
+              <option>Evaluate</option>
+              <option>Create</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn primary" onclick="generateQuestions()">🧠 Generate 45 Questions</button>
+        <div id="q-result" class="result-box hidden"></div>
+      </div>
+    </section>
+
+    <!-- ── QUIZ ───────────────────────────────────────────── -->
+    <section id="tab-quiz" class="tab">
+      <h1>Quiz Evaluation</h1>
+
+      <div class="card">
+        <div class="form-row">
+          <div>
+            <label>Student PRN</label>
+            <input id="qz-prn" type="text" placeholder="MIT2024001" />
+          </div>
+          <div>
+            <label>Student Name</label>
+            <input id="qz-name" type="text" placeholder="Student Name" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Subject Code</label>
+            <input id="qz-subject" type="text" placeholder="CS501" />
+          </div>
+          <div>
+            <label>Topic Number</label>
+            <input id="qz-topic" type="text" placeholder="1.2" />
+          </div>
+          <div>
+            <label>Lecture Number</label>
+            <input id="qz-lecture" type="number" placeholder="5" />
+          </div>
+        </div>
+        <label>Student Answers (JSON)</label>
+        <textarea id="qz-answers" rows="4"
+          placeholder='[{"question_id":"Q1","selected":"A"},{"question_id":"Q2","selected":"C"}]'></textarea>
+        <label>Answer Key (JSON)</label>
+        <textarea id="qz-key" rows="3"
+          placeholder='{"Q1":"A","Q2":"B","Q3":"C"}'></textarea>
+        <button class="btn primary" onclick="evaluateQuiz()">📝 Evaluate Quiz</button>
+        <div id="qz-result" class="result-box hidden"></div>
+      </div>
+    </section>
+
+    <!-- ── ANALYTICS ──────────────────────────────────────── -->
+    <section id="tab-analytics" class="tab">
+      <h1>Analytics</h1>
+
+      <div class="two-col">
+        <div class="card">
+          <h2>Student Analytics</h2>
+          <label>Student PRN</label>
+          <input id="an-prn" type="text" placeholder="MIT2024001" />
+          <button class="btn primary" onclick="getStudentAnalytics()">📈 Get Report</button>
+          <div id="an-student-result" class="result-box hidden"></div>
+        </div>
+
+        <div class="card">
+          <h2>Faculty Analytics</h2>
+          <label>Faculty ID</label>
+          <input id="an-fid" type="text" placeholder="FAC001" />
+          <button class="btn primary" onclick="getFacultyAnalytics()">📊 Get Report</button>
+          <div id="an-faculty-result" class="result-box hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── REPORTS ─────────────────────────────────────────── -->
+    <section id="tab-reports" class="tab">
+      <h1>Report Generator</h1>
+      <p class="subtitle">Exports are uploaded to Google Shared Drive and a link is returned.</p>
+
+      <div class="card">
+        <label>Report Type</label>
+        <select id="rpt-type">
+          <option value="attendance">Attendance Sheet</option>
+          <option value="quiz">Quiz Report</option>
+          <option value="teaching_plan">Teaching Plan</option>
+          <option value="question_bank">Question Bank</option>
+        </select>
+        <label>Formats</label>
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="rpt-pdf" checked /> PDF</label>
+          <label><input type="checkbox" id="rpt-xlsx" checked /> XLSX</label>
+          <label><input type="checkbox" id="rpt-docx" /> DOCX</label>
+        </div>
+        <button class="btn primary" onclick="generateReport()">📄 Generate & Upload</button>
+        <div id="rpt-result" class="result-box hidden"></div>
+      </div>
+    </section>
+
+    <!-- ── NOTIFICATIONS ──────────────────────────────────── -->
+    <section id="tab-notify" class="tab">
+      <h1>Parent Notifications</h1>
+      <p class="subtitle">Automatically identifies students below 75% attendance and alerts parents.</p>
+
+      <div class="card">
+        <label>Subject Code (optional)</label>
+        <input id="nt-subject" type="text" placeholder="Leave blank for all subjects" />
+        <label>Faculty Email</label>
+        <input id="nt-email" type="email" placeholder="faculty@mitaoe.ac.in" />
+        <button class="btn danger" onclick="sendNotifications()">🔔 Send Alerts to Parents</button>
+        <div id="nt-result" class="result-box hidden"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

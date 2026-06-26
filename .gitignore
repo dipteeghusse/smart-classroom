@@ -1,0 +1,11 @@
+.env
+*.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+data/
+*.log
+.DS_Store
+service_account*.json
+firebase*.json
