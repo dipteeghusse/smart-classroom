@@ -12,13 +12,26 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 import openpyxl
 from docx import Document as DocxDoc
-from google.oauth2.service_account import Credentials
+import google.auth
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 from backend.services.sheets import SheetsService
-from backend.config import SERVICE_ACCOUNT_FILE, SHARED_DRIVE_ID
+from backend.config import GOOGLE_CREDS_JSON, SHARED_DRIVE_ID
 
 _DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive"]
+
+
+def _drive_credentials():
+    if GOOGLE_CREDS_JSON:
+        import json
+        from google.oauth2.service_account import Credentials
+        return Credentials.from_service_account_info(
+            json.loads(GOOGLE_CREDS_JSON), scopes=_DRIVE_SCOPES)
+    creds, _ = google.auth.default(scopes=_DRIVE_SCOPES)
+    if hasattr(creds, "refresh"):
+        creds.refresh(Request())
+    return creds
 
 # Map report_type → (sheet_tab, column_headers)
 REPORT_CONFIG = {
@@ -30,8 +43,7 @@ REPORT_CONFIG = {
 
 
 def _upload_to_drive(filename: str, mime: str, buf: io.BytesIO) -> str:
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=_DRIVE_SCOPES)
-    svc   = build("drive", "v3", credentials=creds)
+    svc   = build("drive", "v3", credentials=_drive_credentials())
     meta  = {"name": filename, "parents": [SHARED_DRIVE_ID]}
     media = MediaIoBaseUpload(buf, mimetype=mime, resumable=False)
     file  = svc.files().create(
