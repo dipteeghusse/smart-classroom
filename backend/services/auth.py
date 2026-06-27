@@ -74,15 +74,31 @@ def decode_token(token: str) -> dict:
 
     return claims
 
+# ── Local fallback users (used when Google Sheets is unavailable) ─────────────
+
+_LOCAL_USERS = [
+    {"ID": "MIT2024001", "Name": "Demo Student",  "Role": "student", "Department": "CSE AI&ML", "Class": "SE",  "Division": "A", "Password_Hash": hash_password("student123")},
+    {"ID": "FAC001",     "Name": "Demo Faculty",  "Role": "faculty", "Department": "CSE AI&ML", "Class": "",    "Division": "",  "Password_Hash": hash_password("faculty123")},
+    {"ID": "HOD001",     "Name": "Demo HoD",      "Role": "hod",     "Department": "CSE AI&ML", "Class": "",    "Division": "",  "Password_Hash": hash_password("hod123")},
+    {"ID": "ADMIN001",   "Name": "Admin",         "Role": "admin",   "Department": "MITAOE",    "Class": "",    "Division": "",  "Password_Hash": hash_password("admin123")},
+]
+
 # ── Login logic ───────────────────────────────────────────────────────────────
 
 def login(user_id: str, password: str) -> dict:
     """
     Look up the user in the 'users' sheet and verify password.
+    Falls back to _LOCAL_USERS if Google Sheets is unavailable.
     Returns token + user info on success, raises ValueError on failure.
     """
-    sheets = SheetsService()
-    users  = sheets.read_all("users")
+    users = _LOCAL_USERS   # default fallback
+    try:
+        sheets = SheetsService()
+        sheet_users = sheets.read_all("users")
+        if sheet_users:           # only use sheet if it has data
+            users = sheet_users
+    except Exception:
+        pass                      # Sheets unavailable — continue with local users
 
     user = next(
         (u for u in users if str(u.get("ID", "")).strip() == user_id.strip()),
