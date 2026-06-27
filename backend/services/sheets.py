@@ -4,9 +4,12 @@ services/sheets.py — Google Sheets service.
 Single responsibility: read from and write to the 8 Google Sheet modules.
 All agents call this service; no agent talks to Sheets directly.
 """
+import json
 import gspread
+import google.auth
 from google.oauth2.service_account import Credentials
-from backend.config import SERVICE_ACCOUNT_FILE, SPREADSHEET_ID, SHEET_TABS
+from google.auth.transport.requests import Request
+from backend.config import GOOGLE_CREDS_JSON, SPREADSHEET_ID, SHEET_TABS
 
 _SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -14,12 +17,27 @@ _SCOPES = [
 ]
 
 
+def _get_credentials():
+    """
+    Credential resolution order:
+    1. GOOGLE_CREDS_JSON env var — inline SA JSON (CI / local override)
+    2. Application Default Credentials — Cloud Run attached SA, or `gcloud auth application-default login`
+    """
+    if GOOGLE_CREDS_JSON:
+        info = json.loads(GOOGLE_CREDS_JSON)
+        return Credentials.from_service_account_info(info, scopes=_SCOPES)
+    # ADC: works automatically on Cloud Run, GCE, and after `gcloud auth application-default login`
+    creds, _ = google.auth.default(scopes=_SCOPES)
+    if hasattr(creds, "refresh"):
+        creds.refresh(Request())
+    return creds
+
+
 class SheetsService:
     """Thin wrapper around gspread for the classroom spreadsheet."""
 
     def __init__(self):
-        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=_SCOPES)
-        client = gspread.authorize(creds)
+        client = gspread.authorize(_get_credentials())
         self._wb = client.open_by_key(SPREADSHEET_ID)
 
     # ── Internal helpers ──────────────────────────────────────────────────────

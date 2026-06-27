@@ -41,17 +41,17 @@ secret_flag() {
 }
 
 BACKEND_SECRETS=$(cat <<EOF
-$(secret_flag GROQ_API_KEY       SC_GROQ_API_KEY)
-$(secret_flag GOOGLE_SHEET_ID    SC_GOOGLE_SHEET_ID)
+$(secret_flag GROQ_API_KEY           SC_GROQ_API_KEY)
+$(secret_flag GOOGLE_SHEET_ID        SC_GOOGLE_SHEET_ID)
 $(secret_flag GOOGLE_DRIVE_FOLDER_ID SC_GOOGLE_DRIVE_FOLDER_ID)
-$(secret_flag SECRET_KEY         SC_SECRET_KEY)
-$(secret_flag TWILIO_SID         SC_TWILIO_SID)
-$(secret_flag TWILIO_TOKEN       SC_TWILIO_TOKEN)
-$(secret_flag TWILIO_WHATSAPP    SC_TWILIO_WHATSAPP)
-$(secret_flag SENDGRID_API_KEY   SC_SENDGRID_API_KEY)
-$(secret_flag SENDGRID_FROM      SC_SENDGRID_FROM)
-$(secret_flag GOOGLE_CREDS_JSON  SC_GOOGLE_CREDS_JSON)
+$(secret_flag SECRET_KEY             SC_SECRET_KEY)
+$(secret_flag TWILIO_SID             SC_TWILIO_SID)
+$(secret_flag TWILIO_TOKEN           SC_TWILIO_TOKEN)
+$(secret_flag TWILIO_WHATSAPP        SC_TWILIO_WHATSAPP)
+$(secret_flag SENDGRID_API_KEY       SC_SENDGRID_API_KEY)
+$(secret_flag SENDGRID_FROM          SC_SENDGRID_FROM)
 EOF
+# GOOGLE_CREDS_JSON removed — Cloud Run uses the attached service account via ADC
 )
 
 # ── Deploy backend to Cloud Run ───────────────────────────────────────────────

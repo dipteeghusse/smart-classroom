@@ -12,8 +12,10 @@ GROQ_API_KEY       = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL         = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 # ── Google Sheets ─────────────────────────────────────────────────────────────
-SPREADSHEET_ID     = os.getenv("GOOGLE_SPREADSHEET_ID", "")
-SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE", "service_account.json")
+SPREADSHEET_ID     = os.getenv("GOOGLE_SHEET_ID", "")
+# On Cloud Run the attached service account is used automatically (ADC).
+# For local dev: run `gcloud auth application-default login` — no key file needed.
+GOOGLE_CREDS_JSON  = os.getenv("GOOGLE_CREDS_JSON", "")   # optional: inline SA JSON for CI/local
 
 # ── ChromaDB (RAG) ────────────────────────────────────────────────────────────
 CHROMA_PATH        = os.getenv("CHROMA_PATH", "./data/chromadb")
