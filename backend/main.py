@@ -336,8 +336,6 @@ def health():
 
 _FRONTEND = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(_FRONTEND):
-    app.mount("/static", StaticFiles(directory=_FRONTEND), name="static")
-
     @app.get("/")
     def root():
         return FileResponse(os.path.join(_FRONTEND, "login.html"))
@@ -345,3 +343,6 @@ if os.path.isdir(_FRONTEND):
     @app.get("/dashboard")
     def dashboard():
         return FileResponse(os.path.join(_FRONTEND, "index.html"))
+
+    # Mount last so explicit routes above take priority
+    app.mount("/", StaticFiles(directory=_FRONTEND), name="static")
