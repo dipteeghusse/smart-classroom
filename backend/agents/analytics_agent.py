@@ -40,13 +40,16 @@ def student_report(prn: str) -> dict:
     # GATE readiness = 30% attendance + 70% quiz average
     gate_score = round(0.3 * att_pct + 0.7 * avg_quiz, 2)
 
-    # AI insight via Groq
-    insight = chat(
-        system="You are an academic counsellor. Give a 2-sentence performance insight.",
-        user=f"Student PRN {prn}: attendance {att_pct}%, avg quiz {avg_quiz}%, weak topics: {weak_topics}",
-        temperature=0.4,
-        max_tokens=200,
-    )
+    # AI insight via Groq (optional — returns placeholder if unavailable)
+    try:
+        insight = chat(
+            system="You are an academic counsellor. Give a 2-sentence performance insight.",
+            user=f"Student PRN {prn}: attendance {att_pct}%, avg quiz {avg_quiz}%, weak topics: {weak_topics}",
+            temperature=0.4,
+            max_tokens=200,
+        )
+    except Exception:
+        insight = f"Attendance: {att_pct}%. Average quiz score: {avg_quiz}%. Set GROQ_API_KEY for AI insights."
 
     return {
         "student_prn":        prn,
@@ -90,12 +93,15 @@ def faculty_report(faculty_id: str) -> dict:
         co_scores[co].append(float(q.get("Percentage", 0)))
     co_attainment = {co: round(sum(v)/len(v), 2) for co, v in co_scores.items() if v}
 
-    insight = chat(
-        system="You are an academic quality analyst. Give a 2-sentence faculty performance insight.",
-        user=f"Faculty {faculty_id}: syllabus coverage {coverage_pct}%, progress {progress_pct}%, CO attainment: {co_attainment}",
-        temperature=0.4,
-        max_tokens=200,
-    )
+    try:
+        insight = chat(
+            system="You are an academic quality analyst. Give a 2-sentence faculty performance insight.",
+            user=f"Faculty {faculty_id}: syllabus coverage {coverage_pct}%, progress {progress_pct}%, CO attainment: {co_attainment}",
+            temperature=0.4,
+            max_tokens=200,
+        )
+    except Exception:
+        insight = f"Syllabus coverage: {coverage_pct}%. Progress: {progress_pct}%. Set GROQ_API_KEY for AI insights."
 
     return {
         "faculty_id":       faculty_id,

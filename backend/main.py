@@ -54,6 +54,8 @@ from backend.services.qr_service  import generate_qr
 from backend.services.auth        import login, get_current_user
 from backend.services.upload_service import process_upload
 from backend.services.sheets      import SheetsService
+from backend.agents.analytics_agent import hod_dashboard as _hod_dashboard
+from backend.agents.analytics_agent import student_report, faculty_report
 
 app = FastAPI(title="Smart Classroom AI", version="1.0.0")
 
@@ -286,25 +288,25 @@ def student_analytics(prn: str, authorization: str = Header(...)):
     if user["role"] == "student" and user["id"] != prn:
         raise HTTPException(status_code=403, detail="Access denied")
     try:
-        return orchestrator.invoke("student_analytics", {"student_prn": prn})
+        return student_report(prn)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
 @app.get("/api/analytics/faculty/{faculty_id}")
 def faculty_analytics(faculty_id: str, authorization: str = Header(...)):
     user = require_auth(authorization)
     require_role(user, "faculty", "hod", "admin")
     try:
-        return orchestrator.invoke("faculty_analytics", {"faculty_id": faculty_id})
+        return faculty_report(faculty_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
 @app.get("/api/analytics/hod")
 def hod_dashboard(authorization: str = Header(...)):
     user = require_auth(authorization)
     require_role(user, "hod", "admin")
     try:
-        return orchestrator.invoke("hod_dashboard", {})
+        return _hod_dashboard()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
