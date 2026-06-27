@@ -20,13 +20,21 @@ _SCOPES = [
 def _get_credentials():
     """
     Credential resolution order:
-    1. GOOGLE_CREDS_JSON env var — inline SA JSON (CI / local override)
-    2. Application Default Credentials — Cloud Run attached SA, or `gcloud auth application-default login`
+    1. GOOGLE_CREDS_JSON env var  — inline SA JSON (CI / Cloud Run)
+    2. credentials.json file      — OAuth2 Desktop app (local dev, no gcloud needed)
+    3. ADC                        — gcloud auth application-default login (with --scopes)
     """
     if GOOGLE_CREDS_JSON:
         info = json.loads(GOOGLE_CREDS_JSON)
         return Credentials.from_service_account_info(info, scopes=_SCOPES)
-    # ADC: works automatically on Cloud Run, GCE, and after `gcloud auth application-default login`
+
+    # OAuth2 file — download from GCP Console → APIs & Services → Credentials
+    import os
+    oauth_file = os.path.join(os.path.dirname(__file__), "..", "..", "credentials.json")
+    if os.path.exists(oauth_file):
+        return gspread.oauth(credentials_filename=oauth_file, scopes=_SCOPES)
+
+    # ADC fallback — requires: gcloud auth application-default login --scopes=...
     creds, _ = google.auth.default(scopes=_SCOPES)
     if hasattr(creds, "refresh"):
         creds.refresh(Request())
@@ -37,7 +45,12 @@ class SheetsService:
     """Thin wrapper around gspread for the classroom spreadsheet."""
 
     def __init__(self):
-        client = gspread.authorize(_get_credentials())
+        creds = _get_credentials()
+        # gspread.oauth() returns a gspread.Client directly; others return Credentials
+        if isinstance(creds, gspread.Client):
+            client = creds
+        else:
+            client = gspread.authorize(creds)
         self._wb = client.open_by_key(SPREADSHEET_ID)
 
     # ── Internal helpers ──────────────────────────────────────────────────────
