@@ -135,7 +135,16 @@ def process_upload(filename: str, content: bytes, upload_type: str) -> dict:
             inserted += 1
 
         except Exception as e:
-            errors.append({"row": i, "error": str(e)})
+            msg = str(e)
+            # WorksheetNotFound stringifies to just the tab name — make it clear
+            if msg in ("Users", "Student Master", "Faculty Master",
+                       "Subject Master", "Teaching Plan", "Lecture Schedule",
+                       "Attendance Sheet", "Student Quiz Sheet",
+                       "Question Bank Repository", "Departments"):
+                msg = (f"Sheet tab '{msg}' not found. Open your Google Sheet "
+                       f"and create a tab with that exact name, then retry. "
+                       f"Or run: python setup_sheets.py")
+            errors.append({"row": i, "error": msg})
 
     return {
         "upload_type": upload_type,
