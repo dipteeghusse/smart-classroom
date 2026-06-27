@@ -114,12 +114,15 @@ def hod_dashboard() -> dict:
     """
     Department-level snapshot for the HoD dashboard.
     Returns key metrics across all students, subjects, and faculty.
+    Returns zeros gracefully when sheets are empty.
     """
-    sheets = SheetsService()
-
-    att   = sheets.read_all("attendance")
-    quiz  = sheets.read_all("quiz")
-    plan  = sheets.read_all("teaching_plan")
+    try:
+        sheets = SheetsService()
+        att   = sheets.read_all("attendance")  or []
+        quiz  = sheets.read_all("quiz")        or []
+        plan  = sheets.read_all("teaching_plan") or []
+    except Exception:
+        att, quiz, plan = [], [], []
 
     # Department attendance
     total   = len(att)

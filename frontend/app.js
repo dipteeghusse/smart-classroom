@@ -3,7 +3,7 @@
    Role-based navigation, uploads, attendance, quiz, analytics, reports.
    ───────────────────────────────────────────────────────────────────────── */
 
-const API = "http://localhost:8080";
+const API = window.location.origin;
 
 /* ── Session helpers ─────────────────────────────────────────────────────── */
 
@@ -208,17 +208,34 @@ function filterTable(tableId, query) {
 /* ── HoD Dashboard ───────────────────────────────────────────────────────── */
 
 async function loadHodDashboard() {
-  const btn = document.querySelector("[data-tab='dashboard'] ~ * .btn, #tab-dashboard .btn");
+  setVal("val-att",    "…"); setVal("val-gate", "…");
+  setVal("val-cov",    "…"); setVal("val-quiz", "…"); setVal("val-topics", "…");
   try {
     const data = await apiGet("/api/analytics/hod");
-    setVal("val-att",    (data.dept_attendance_pct   ?? "—") + "%");
-    setVal("val-gate",   (data.gate_readiness_index  ?? "—") + "%");
-    setVal("val-cov",    (data.syllabus_coverage_pct ?? "—") + "%");
-    setVal("val-quiz",   data.total_quiz_attempts    ?? "—");
-    setVal("val-topics", `${data.topics_completed ?? "—"} / ${data.topics_total ?? "—"}`);
-    showResult("hod-result", data);
+    const att  = data.dept_attendance_pct   ?? 0;
+    const gate = data.gate_readiness_index  ?? 0;
+    const cov  = data.syllabus_coverage_pct ?? 0;
+    const quiz = data.total_quiz_attempts   ?? 0;
+    const done = data.topics_completed      ?? 0;
+    const tot  = data.topics_total          ?? 0;
+
+    setVal("val-att",    att  + "%");
+    setVal("val-gate",   gate + "%");
+    setVal("val-cov",    cov  + "%");
+    setVal("val-quiz",   quiz);
+    setVal("val-topics", `${done} / ${tot}`);
+
+    // Colour-code attendance
+    const attEl = document.getElementById("val-att");
+    if (attEl) attEl.style.color = att < 75 ? "#ef4444" : att < 85 ? "#f59e0b" : "#16a34a";
+
+    const noData = att === 0 && quiz === 0 && tot === 0;
+    const msg = noData
+      ? "No data yet — upload students, lesson plan and mark attendance to see live metrics."
+      : JSON.stringify(data, null, 2);
+    showResult("hod-result", msg, noData);
   } catch (e) {
-    showResult("hod-result", e.message, true);
+    showResult("hod-result", "Could not load analytics: " + e.message, true);
   }
 }
 function setVal(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
