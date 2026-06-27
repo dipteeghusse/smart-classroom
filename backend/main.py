@@ -148,6 +148,8 @@ async def _handle_upload(file: UploadFile, upload_type: str,
         return process_upload(file.filename, content, upload_type)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {type(e).__name__}: {e}")
 
 @app.post("/api/upload/students")
 async def upload_students(
@@ -304,7 +306,7 @@ def hod_dashboard(authorization: str = Header(...)):
     try:
         return orchestrator.invoke("hod_dashboard", {})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
 
 # ── NOTIFICATIONS & REPORTS ───────────────────────────────────────────────────
 
