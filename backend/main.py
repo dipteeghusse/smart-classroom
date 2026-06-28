@@ -51,7 +51,7 @@ import os
 
 from backend import orchestrator
 from backend.services.qr_service  import generate_qr
-from backend.services.auth        import login, get_current_user
+from backend.services.auth        import login, get_current_user, change_password
 from backend.services.upload_service import process_upload
 from backend.services.sheets      import SheetsService
 from backend.agents.analytics_agent import hod_dashboard as _hod_dashboard
@@ -81,8 +81,13 @@ def require_role(user: dict, *roles: str):
 # ── Request models ────────────────────────────────────────────────────────────
 
 class LoginRequest(BaseModel):
-    user_id:  str
+    user_id:  str   # accepts ID or email
     password: str
+
+class ChangePasswordRequest(BaseModel):
+    user_id:      str
+    temp_token:   str
+    new_password: str
 
 class AttendanceRequest(BaseModel):
     lecture_id:     str
@@ -138,6 +143,13 @@ def auth_login(req: LoginRequest):
 @app.get("/api/auth/me")
 def auth_me(authorization: str = Header(...)):
     return require_auth(authorization)
+
+@app.post("/api/auth/change-password")
+def auth_change_password(req: ChangePasswordRequest):
+    try:
+        return change_password(req.user_id, req.temp_token, req.new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # ── UPLOADS ───────────────────────────────────────────────────────────────────
 

@@ -60,7 +60,8 @@ TABS = {
         "Answer", "Explanation", "Source",
     ],
     "Users": [
-        "ID", "Name", "Role", "Department", "Class", "Division", "Password_Hash",
+        "ID", "Name", "Role", "Department", "Class", "Division",
+        "Email", "Password_Hash", "Must_Reset",
     ],
     "Departments": [
         "Department Code", "Department Name", "HoD ID", "Faculty Count",

@@ -38,7 +38,8 @@ HEADERS = {
         "Blooms Level", "Status",
     ],
     "users": [
-        "ID", "Name", "Role", "Department", "Class", "Division", "Password_Hash",
+        "ID", "Name", "Role", "Department", "Class", "Division",
+        "Email", "Password_Hash", "Must_Reset",
     ],
 }
 
@@ -121,10 +122,12 @@ def process_upload(filename: str, content: bytes, upload_type: str) -> dict:
         try:
             # For users upload: hash the plain-text password in the last column
             if upload_type == "users" and len(row) >= 7:
-                plain_pw = row[6].strip()
-                if plain_pw and not len(plain_pw) == 64:   # not already hashed
+                # Password is now column index 7 (after Email at index 6)
+                pw_idx = 7 if len(row) >= 8 else 6
+                plain_pw = row[pw_idx].strip()
+                if plain_pw and len(plain_pw) != 64:   # not already hashed
                     row = list(row)
-                    row[6] = hash_password(plain_pw)
+                    row[pw_idx] = hash_password(plain_pw)
 
             # Skip completely empty rows
             if not any(str(c).strip() for c in row):

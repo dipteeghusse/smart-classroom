@@ -1,8 +1,8 @@
-ID,Name,Role,Department,Class,Division,Password_Hash
-MIT2024001,Aarav Sharma,student,CSE AI&ML,SE,A,student123
-MIT2024002,Priya Patil,student,CSE AI&ML,SE,A,student123
-MIT2024003,Rohan Desai,student,CSE AI&ML,SE,A,student123
-FAC001,Dr. Priya Sharma,faculty,CSE AI&ML,,, faculty123
-FAC002,Prof. Ramesh Patil,faculty,CSE AI&ML,,,faculty123
-HOD001,Dr. Anita Verma,hod,CSE AI&ML,,,hod123
-ADMIN001,Admin User,admin,MITAOE,,,admin123
+ID,Name,Role,Department,Class,Division,Email,Password_Hash,Must_Reset
+MIT2024001,Aarav Sharma,student,CSE AI&ML,SE,A,aarav.sharma@mitaoe.ac.in,student123,true
+MIT2024002,Priya Patil,student,CSE AI&ML,SE,A,priya.patil@mitaoe.ac.in,student123,true
+MIT2024003,Rohan Desai,student,CSE AI&ML,SE,A,rohan.desai@mitaoe.ac.in,student123,true
+FAC001,Dr. Priya Sharma,faculty,CSE AI&ML,,,priya.sharma@mitaoe.ac.in,faculty123,true
+FAC002,Prof. Ramesh Patil,faculty,CSE AI&ML,,,ramesh.patil@mitaoe.ac.in,faculty123,true
+HOD001,Dr. Anita Verma,hod,CSE AI&ML,,,anita.verma@mitaoe.ac.in,hod123,false
+ADMIN001,Admin User,admin,MITAOE,,,admin@mitaoe.ac.in,admin123,false

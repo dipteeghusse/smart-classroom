@@ -91,10 +91,65 @@
     }
     .demo-hint strong { color: var(--gray-800); }
     .demo-row { display: flex; justify-content: space-between; margin-top: 4px; }
+
+    /* ── Reset password overlay ─────────────────────────── */
+    #reset-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #reset-overlay.show { display: flex; }
+
+    .reset-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .reset-card h2 {
+      font-size: 18px;
+      color: var(--gray-900);
+      margin-bottom: 6px;
+    }
+    .reset-card p.sub {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 20px;
+    }
+    .pw-strength {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--gray-200);
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .pw-strength-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.2s, background 0.2s;
+      border-radius: 2px;
+    }
+    .reset-error {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      color: #dc2626;
+      font-size: 13px;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
+<!-- ── Normal login card ──────────────────────────────────── -->
 <div class="login-wrap">
   <div class="login-header">
     <div class="icon">🎓</div>
@@ -120,8 +175,9 @@
       </div>
     </div>
 
-    <label id="id-label">Student PRN / Roll Number</label>
-    <input id="user-id" type="text" placeholder="e.g. MIT2024001" autocomplete="username" />
+    <label id="id-label">Student PRN / Email</label>
+    <input id="user-id" type="text" placeholder="e.g. MIT2024001 or email@mitaoe.ac.in"
+           autocomplete="username" />
 
     <label>Password</label>
     <input id="password" type="password" placeholder="Enter password"
@@ -143,27 +199,53 @@
   </div>
 </div>
 
+<!-- ── First-login password reset overlay ────────────────── -->
+<div id="reset-overlay">
+  <div class="reset-card">
+    <h2>🔐 Set Your Password</h2>
+    <p class="sub">This is your first login. Please choose a new password to continue.</p>
+
+    <label>New Password</label>
+    <input id="new-pw" type="password" placeholder="At least 8 characters"
+           oninput="checkStrength(this.value)" />
+    <div class="pw-strength"><div class="pw-strength-bar" id="pw-bar"></div></div>
+
+    <label style="margin-top:14px;">Confirm Password</label>
+    <input id="confirm-pw" type="password" placeholder="Re-enter new password"
+           onkeydown="if(event.key==='Enter') doReset()" />
+
+    <div class="reset-error" id="reset-error"></div>
+
+    <button class="btn primary login-btn" onclick="doReset()">Set Password &amp; Login →</button>
+  </div>
+</div>
+
 <script>
-  const API = "http://localhost:8080";
+  const API = window.location.origin;
   let selectedRole = "student";
+  let _resetUserId   = "";
+  let _resetTmpToken = "";
 
   const ID_LABELS = {
-    student: "Student PRN / Roll Number",
-    faculty: "Faculty ID",
-    hod:     "HoD ID",
-    admin:   "Admin ID",
+    student: "Student PRN / Email",
+    faculty: "Faculty ID / Email",
+    hod:     "HoD ID / Email",
+    admin:   "Admin ID / Email",
+  };
+
+  const ID_PLACEHOLDERS = {
+    student: "e.g. MIT2024001 or email@mitaoe.ac.in",
+    faculty: "e.g. FAC001 or priya.sharma@mitaoe.ac.in",
+    hod:     "e.g. HOD001 or anita.verma@mitaoe.ac.in",
+    admin:   "e.g. ADMIN001 or admin@mitaoe.ac.in",
   };
 
   function selectRole(pill) {
     document.querySelectorAll(".role-pill").forEach(p => p.classList.remove("active"));
     pill.classList.add("active");
     selectedRole = pill.dataset.role;
-    document.getElementById("id-label").textContent = ID_LABELS[selectedRole];
-    document.getElementById("user-id").placeholder =
-      selectedRole === "student" ? "e.g. MIT2024001"
-      : selectedRole === "faculty" ? "e.g. FAC001"
-      : selectedRole === "hod"     ? "e.g. HOD001"
-      : "e.g. ADMIN001";
+    document.getElementById("id-label").textContent        = ID_LABELS[selectedRole];
+    document.getElementById("user-id").placeholder         = ID_PLACEHOLDERS[selectedRole];
   }
 
   async function doLogin() {
@@ -173,7 +255,7 @@
     const password = document.getElementById("password").value;
 
     if (!userId || !password) {
-      showError("Please enter your ID and password.");
+      showError("Please enter your ID (or email) and password.");
       return;
     }
 
@@ -195,17 +277,22 @@
 
       const data = await resp.json();
 
+      // First-login reset gate
+      if (data.must_reset) {
+        _resetUserId   = data.user_id;
+        _resetTmpToken = data.temp_token;
+        document.getElementById("reset-overlay").classList.add("show");
+        btn.innerHTML = "Login →";
+        btn.disabled  = false;
+        return;
+      }
+
       // Verify role matches selected pill
       if (data.role !== selectedRole) {
         throw new Error(`This account is a '${data.role}', not a '${selectedRole}'.`);
       }
 
-      // Store session
-      localStorage.setItem("sc_token", data.token);
-      localStorage.setItem("sc_user",  JSON.stringify(data));
-
-      // Redirect to dashboard
-      window.location.href = "/dashboard";
+      _storeAndRedirect(data);
 
     } catch (e) {
       showError(e.message);
@@ -214,10 +301,86 @@
     }
   }
 
+  async function doReset() {
+    const newPw     = document.getElementById("new-pw").value;
+    const confirmPw = document.getElementById("confirm-pw").value;
+    const errEl     = document.getElementById("reset-error");
+    const btn       = document.getElementById("reset-overlay").querySelector(".btn");
+
+    errEl.style.display = "none";
+
+    if (newPw.length < 8) {
+      showResetError("Password must be at least 8 characters."); return;
+    }
+    if (newPw !== confirmPw) {
+      showResetError("Passwords do not match."); return;
+    }
+
+    btn.innerHTML = '<span class="spinner"></span>Saving…';
+    btn.disabled  = true;
+
+    try {
+      const resp = await fetch(API + "/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id:      _resetUserId,
+          temp_token:   _resetTmpToken,
+          new_password: newPw,
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.detail || "Password change failed");
+      }
+
+      const data = await resp.json();
+
+      // Verify role
+      if (data.role !== selectedRole) {
+        throw new Error(`This account is a '${data.role}', not a '${selectedRole}'.`);
+      }
+
+      _storeAndRedirect(data);
+
+    } catch (e) {
+      showResetError(e.message);
+      btn.innerHTML = "Set Password & Login →";
+      btn.disabled  = false;
+    }
+  }
+
+  function _storeAndRedirect(data) {
+    localStorage.setItem("sc_token", data.token);
+    localStorage.setItem("sc_user",  JSON.stringify(data));
+    window.location.href = "/dashboard";
+  }
+
+  function checkStrength(pw) {
+    const bar = document.getElementById("pw-bar");
+    let score = 0;
+    if (pw.length >= 8)  score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const pct   = (score / 5) * 100;
+    const color = score <= 1 ? "#ef4444" : score <= 3 ? "#f59e0b" : "#22c55e";
+    bar.style.width      = pct + "%";
+    bar.style.background = color;
+  }
+
   function showError(msg) {
     const el = document.getElementById("error-msg");
-    el.textContent    = msg;
-    el.style.display  = "block";
+    el.textContent   = msg;
+    el.style.display = "block";
+  }
+
+  function showResetError(msg) {
+    const el = document.getElementById("reset-error");
+    el.textContent   = msg;
+    el.style.display = "block";
   }
 
   // If already logged in, go straight to dashboard
