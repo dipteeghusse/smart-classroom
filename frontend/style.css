@@ -265,6 +265,33 @@ textarea { resize: vertical; font-family: monospace; }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr:hover td { background: var(--blue-lt); }
 
+/* ── Upload mode toggle ──────────────────────────────────────────────────── */
+.upload-mode-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.upload-mode-btn {
+  padding: 9px 18px;
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--gray-50);
+  color: var(--gray-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.upload-mode-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.upload-mode-btn.active {
+  border-color: var(--blue);
+  background: var(--blue-lt);
+  color: var(--blue);
+}
+
 /* ── Upload cards ─────────────────────────────────────────────────────────── */
 .upload-grid {
   display: grid;

@@ -399,7 +399,7 @@ const SAMPLES = {
   faculty:     "Faculty ID,Faculty Name,Department,Subject,Course,Semester,Mobile Number,Email\nFAC001,Dr. Priya Sharma,CSE AI&ML,Deep Learning,B.Tech,5,9823001001,faculty@mitaoe.ac.in",
   subjects:    "Subject Code,Subject Name,Department,Course,Semester,Credits,Faculty Assigned\nCS501,Deep Learning,CSE AI&ML,B.Tech,5,4,FAC001",
   lesson_plan: "Subject Code,Unit Number,Topic Number,Topic Name,Planned Date,Planned Hours,Course Outcome,Blooms Level,Status\nCS501,1,1.1,Neural Networks,2026-07-01,2,CO1,Apply,Pending",
-  users:       "ID,Name,Role,Department,Class,Division,Password_Hash\nMIT2024001,Student Name,student,CSE AI&ML,SE,A,yourpassword",
+  users:       "ID,Name,Role,Department,Class,Division,Email,Password_Hash,Must_Reset\nMIT2024001,Student Name,student,CSE AI&ML,SE,A,student@mitaoe.ac.in,yourpassword,true",
 };
 
 function downloadSample(type) {
@@ -409,6 +409,182 @@ function downloadSample(type) {
   a.href     = URL.createObjectURL(blob);
   a.download = `sample_${type}.csv`;
   a.click();
+}
+
+/* ── Upload mode toggle (Bulk / Single) ──────────────────────────────────── */
+
+function setUploadMode(mode) {
+  const bulk   = document.getElementById("bulk-upload-section");
+  const single = document.getElementById("single-upload-section");
+  const btnB   = document.getElementById("mode-bulk-btn");
+  const btnS   = document.getElementById("mode-single-btn");
+
+  if (mode === "bulk") {
+    bulk.style.display   = "";
+    single.style.display = "none";
+    btnB.classList.add("active");
+    btnS.classList.remove("active");
+  } else {
+    bulk.style.display   = "none";
+    single.style.display = "";
+    btnB.classList.remove("active");
+    btnS.classList.add("active");
+    // Render the default form if not already rendered
+    const sel = document.getElementById("single-type");
+    if (sel && !document.getElementById("single-form-fields").children.length) {
+      renderSingleForm(sel.value);
+    }
+    // Hide Users option for non-admins
+    const userOpt = document.getElementById("single-type-users");
+    if (userOpt) userOpt.style.display = getUser()?.role === "admin" ? "" : "none";
+  }
+}
+
+/* ── Single-entry form field definitions ─────────────────────────────────── */
+
+const SINGLE_FIELDS = {
+  students: [
+    { key: "PRN/Roll Number",  label: "PRN / Roll Number",   ph: "MIT2024001",          req: true  },
+    { key: "Student Name",     label: "Student Name",         ph: "Aarav Sharma",        req: true  },
+    { key: "Department",       label: "Department",           ph: "CSE AI&ML",           req: true  },
+    { key: "Program",          label: "Program",              ph: "B.Tech"                          },
+    { key: "Semester",         label: "Semester",             ph: "3",        type: "number"        },
+    { key: "Class",            label: "Class",                ph: "SE"                              },
+    { key: "Division",         label: "Division",             ph: "A"                               },
+    { key: "Batch",            label: "Batch",                ph: "2024-2025"                       },
+    { key: "Mobile Number",    label: "Mobile Number",        ph: "9876543210"                      },
+    { key: "Parent Mobile",    label: "Parent Mobile",        ph: "9876543200"                      },
+    { key: "Parent Email",     label: "Parent Email",         ph: "parent@gmail.com", type: "email" },
+    { key: "WhatsApp Number",  label: "WhatsApp Number",      ph: "9876543210"                      },
+  ],
+  faculty: [
+    { key: "Faculty ID",       label: "Faculty ID",           ph: "FAC001",   req: true  },
+    { key: "Faculty Name",     label: "Faculty Name",         ph: "Dr. Priya Sharma", req: true },
+    { key: "Department",       label: "Department",           ph: "CSE AI&ML",req: true  },
+    { key: "Subject",          label: "Subject",              ph: "Deep Learning"       },
+    { key: "Course",           label: "Course",               ph: "B.Tech"              },
+    { key: "Semester",         label: "Semester",             ph: "5", type: "number"   },
+    { key: "Mobile Number",    label: "Mobile Number",        ph: "9823001001"          },
+    { key: "Email",            label: "Email",                ph: "faculty@mitaoe.ac.in", type: "email" },
+  ],
+  subjects: [
+    { key: "Subject Code",     label: "Subject Code",         ph: "CS501",    req: true  },
+    { key: "Subject Name",     label: "Subject Name",         ph: "Deep Learning", req: true },
+    { key: "Department",       label: "Department",           ph: "CSE AI&ML"           },
+    { key: "Course",           label: "Course",               ph: "B.Tech"              },
+    { key: "Semester",         label: "Semester",             ph: "5", type: "number"   },
+    { key: "Credits",          label: "Credits",              ph: "4", type: "number"   },
+    { key: "Faculty Assigned", label: "Faculty Assigned",     ph: "FAC001"              },
+  ],
+  lesson_plan: [
+    { key: "Subject Code",     label: "Subject Code",         ph: "CS501",    req: true  },
+    { key: "Unit Number",      label: "Unit Number",          ph: "1", type: "number", req: true },
+    { key: "Topic Number",     label: "Topic Number",         ph: "1.1",      req: true  },
+    { key: "Topic Name",       label: "Topic Name",           ph: "Neural Networks", req: true },
+    { key: "Planned Date",     label: "Planned Date",         ph: "", type: "date"      },
+    { key: "Planned Hours",    label: "Planned Hours",        ph: "2", type: "number"   },
+    { key: "Course Outcome",   label: "Course Outcome (CO)",  ph: "CO1"                 },
+    { key: "Blooms Level",     label: "Bloom's Level",        ph: "",
+      type: "select", options: ["Remember","Understand","Apply","Analyse","Evaluate","Create"] },
+    { key: "Status",           label: "Status",               ph: "",
+      type: "select", options: ["Pending","In Progress","Completed"] },
+  ],
+  users: [
+    { key: "ID",               label: "User ID",              ph: "MIT2024001", req: true },
+    { key: "Name",             label: "Full Name",            ph: "Aarav Sharma", req: true },
+    { key: "Role",             label: "Role",                 ph: "",
+      type: "select", options: ["student","faculty","hod","admin"], req: true },
+    { key: "Department",       label: "Department",           ph: "CSE AI&ML"   },
+    { key: "Class",            label: "Class",                ph: "SE"          },
+    { key: "Division",         label: "Division",             ph: "A"           },
+    { key: "Email",            label: "Email",                ph: "user@mitaoe.ac.in", type: "email" },
+    { key: "Password_Hash",    label: "Password (plain)",     ph: "••••••••", type: "password", req: true },
+    { key: "Must_Reset",       label: "Force password reset on first login?", ph: "",
+      type: "select", options: ["true","false"] },
+  ],
+};
+
+function renderSingleForm(type) {
+  const fields  = SINGLE_FIELDS[type] || [];
+  const container = document.getElementById("single-form-fields");
+  if (!container) return;
+
+  // Build two-column grid for forms with many fields
+  const wide = fields.length > 5;
+  container.innerHTML = `
+    <div style="display:${wide ? "grid" : "block"};
+                grid-template-columns:1fr 1fr;gap:0 16px">
+      ${fields.map(f => `
+        <div>
+          <label style="margin-top:12px">
+            ${f.label}${f.req ? ' <span style="color:#ef4444">*</span>' : ""}
+          </label>
+          ${f.type === "select"
+            ? `<select id="sf-${_fid(f.key)}">${
+                f.options.map(o => `<option value="${o}">${o}</option>`).join("")
+              }</select>`
+            : `<input id="sf-${_fid(f.key)}" type="${f.type || "text"}"
+                      placeholder="${f.ph || ""}" />`
+          }
+        </div>`).join("")}
+    </div>`;
+  document.getElementById("single-result").classList.add("hidden");
+}
+
+function _fid(key) { return key.replace(/[^a-z0-9]/gi, "_"); }
+
+async function submitSingle() {
+  const type   = document.getElementById("single-type").value;
+  const fields = SINGLE_FIELDS[type] || [];
+  const result = document.getElementById("single-result");
+
+  // Collect values
+  const body = {};
+  for (const f of fields) {
+    const el = document.getElementById(`sf-${_fid(f.key)}`);
+    if (!el) continue;
+    const val = el.value.trim();
+    if (f.req && !val) {
+      showResult("single-result", `"${f.label}" is required.`, true);
+      el.focus();
+      return;
+    }
+    body[f.key] = val;
+  }
+
+  const btn = document.querySelector("#single-upload-section .btn.primary");
+  btn.innerHTML = "Saving…";
+  btn.disabled  = true;
+
+  try {
+    const r = await fetch(`${API}/api/add/${type}`, {
+      method:  "POST",
+      headers: { ...authHeader(), "Content-Type": "application/json" },
+      body:    JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || JSON.stringify(data));
+
+    showResult("single-result", `✅ Record added successfully.`, false);
+
+    // Clear form
+    fields.forEach(f => {
+      const el = document.getElementById(`sf-${_fid(f.key)}`);
+      if (el && el.tagName !== "SELECT") el.value = "";
+    });
+
+    // Refresh the related list table
+    if (type === "students")    loadStudents();
+    if (type === "faculty")     loadFaculty();
+    if (type === "subjects")    loadSubjects();
+    if (type === "lesson_plan") loadLessonPlan(true);
+
+  } catch (e) {
+    showResult("single-result", e.message, true);
+  }
+
+  btn.innerHTML = "➕ Add Record";
+  btn.disabled  = false;
 }
 
 /* ── QR Code ─────────────────────────────────────────────────────────────── */

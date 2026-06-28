@@ -41,7 +41,7 @@ Endpoints:
   HEALTH
     GET  /health
 """
-from fastapi import FastAPI, HTTPException, Header, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Header, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -52,7 +52,7 @@ import os
 from backend import orchestrator
 from backend.services.qr_service  import generate_qr
 from backend.services.auth        import login, get_current_user, change_password
-from backend.services.upload_service import process_upload
+from backend.services.upload_service import process_upload, HEADERS, SHEET_MAP
 from backend.services.sheets      import SheetsService
 from backend.agents.analytics_agent import hod_dashboard as _hod_dashboard
 from backend.agents.analytics_agent import student_report, faculty_report
@@ -199,6 +199,53 @@ async def upload_users(
     authorization: str = Header(...),
 ):
     return await _handle_upload(file, "users", authorization, ("admin",))
+
+# ── SINGLE RECORD INSERT ──────────────────────────────────────────────────────
+
+_SINGLE_ROLES = {
+    "students":    ("admin", "hod", "faculty"),
+    "faculty":     ("admin", "hod"),
+    "subjects":    ("admin", "hod"),
+    "lesson_plan": ("admin", "hod", "faculty"),
+    "users":       ("admin",),
+}
+
+@app.post("/api/add/{upload_type}")
+async def add_single_record(upload_type: str, request: Request,
+                             authorization: str = Header(...)):
+    """Insert one record submitted as a JSON object."""
+    user = require_auth(authorization)
+    allowed = _SINGLE_ROLES.get(upload_type)
+    if allowed is None:
+        raise HTTPException(status_code=404, detail=f"Unknown type: {upload_type}")
+    require_role(user, *allowed)
+
+    body = await request.json()
+    headers = HEADERS.get(upload_type, [])
+    # Build the row in column order; missing fields become empty string
+    row = [str(body.get(h, "")).strip() for h in headers]
+
+    if not any(row):
+        raise HTTPException(status_code=422, detail="All fields are empty")
+
+    # Hash password for users
+    if upload_type == "users":
+        pw_idx = headers.index("Password_Hash") if "Password_Hash" in headers else -1
+        if pw_idx >= 0:
+            from backend.services.auth import hash_password
+            plain = row[pw_idx]
+            if plain and len(plain) != 64:
+                row[pw_idx] = hash_password(plain)
+
+    try:
+        sheets = SheetsService()
+        sheets.append(SHEET_MAP[upload_type], row)
+        return {"inserted": 1, "upload_type": upload_type}
+    except Exception as e:
+        msg = str(e)
+        if msg in SHEET_MAP.values() or msg in (v for v in HEADERS):
+            msg = f"Sheet tab not found: '{msg}'. Run setup_sheets.py first."
+        raise HTTPException(status_code=500, detail=msg)
 
 # ── DATA READS ────────────────────────────────────────────────────────────────
 

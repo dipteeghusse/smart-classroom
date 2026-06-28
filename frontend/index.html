@@ -157,87 +157,121 @@
     <!-- ── UPLOADS (admin / hod / faculty) ───────────────────── -->
     <section id="tab-upload" class="tab">
       <h1>Upload Data</h1>
-      <p class="subtitle">Upload CSV or Excel files to populate Google Sheets instantly.</p>
+      <p class="subtitle">Add records one at a time or upload a CSV / Excel file in bulk.</p>
 
-      <div class="upload-grid">
-
-        <div class="card upload-card">
-          <div class="upload-icon">👥</div>
-          <h2>Student List</h2>
-          <p>PRN, Name, Class, Division, Mobile, Parent Email</p>
-          <a href="#" onclick="downloadSample('students')" class="sample-link">⬇ Download sample CSV</a>
-          <div class="file-drop" id="drop-students"
-               onclick="document.getElementById('file-students').click()"
-               ondragover="event.preventDefault()" ondrop="handleDrop(event,'students')">
-            <span id="drop-students-label">Click or drag CSV / Excel here</span>
-          </div>
-          <input type="file" id="file-students" accept=".csv,.xlsx,.xls" class="hidden"
-                 onchange="uploadFile('students', this)" />
-          <div id="result-students" class="result-box hidden"></div>
-        </div>
-
-        <div class="card upload-card">
-          <div class="upload-icon">👨‍🏫</div>
-          <h2>Faculty List</h2>
-          <p>Faculty ID, Name, Department, Subject, Email</p>
-          <a href="#" onclick="downloadSample('faculty')" class="sample-link">⬇ Download sample CSV</a>
-          <div class="file-drop" id="drop-faculty"
-               onclick="document.getElementById('file-faculty').click()"
-               ondragover="event.preventDefault()" ondrop="handleDrop(event,'faculty')">
-            <span id="drop-faculty-label">Click or drag CSV / Excel here</span>
-          </div>
-          <input type="file" id="file-faculty" accept=".csv,.xlsx,.xls" class="hidden"
-                 onchange="uploadFile('faculty', this)" />
-          <div id="result-faculty" class="result-box hidden"></div>
-        </div>
-
-        <div class="card upload-card">
-          <div class="upload-icon">📚</div>
-          <h2>Subject / Course List</h2>
-          <p>Subject Code, Name, Credits, Faculty Assigned</p>
-          <a href="#" onclick="downloadSample('subjects')" class="sample-link">⬇ Download sample CSV</a>
-          <div class="file-drop" id="drop-subjects"
-               onclick="document.getElementById('file-subjects').click()"
-               ondragover="event.preventDefault()" ondrop="handleDrop(event,'subjects')">
-            <span id="drop-subjects-label">Click or drag CSV / Excel here</span>
-          </div>
-          <input type="file" id="file-subjects" accept=".csv,.xlsx,.xls" class="hidden"
-                 onchange="uploadFile('subjects', this)" />
-          <div id="result-subjects" class="result-box hidden"></div>
-        </div>
-
-        <div class="card upload-card">
-          <div class="upload-icon">📋</div>
-          <h2>Lesson / Teaching Plan</h2>
-          <p>Unit, Topic, Planned Date, Hours, CO, Bloom's</p>
-          <a href="#" onclick="downloadSample('lesson_plan')" class="sample-link">⬇ Download sample CSV</a>
-          <div class="file-drop" id="drop-lesson_plan"
-               onclick="document.getElementById('file-lesson_plan').click()"
-               ondragover="event.preventDefault()" ondrop="handleDrop(event,'lesson_plan')">
-            <span id="drop-lesson_plan-label">Click or drag CSV / Excel here</span>
-          </div>
-          <input type="file" id="file-lesson_plan" accept=".csv,.xlsx,.xls" class="hidden"
-                 onchange="uploadFile('lesson_plan', this)" />
-          <div id="result-lesson_plan" class="result-box hidden"></div>
-        </div>
-
-        <!-- Admin only -->
-        <div class="card upload-card" id="upload-users-card" style="display:none">
-          <div class="upload-icon">🔐</div>
-          <h2>User Accounts</h2>
-          <p>ID, Name, Role, Password (plain — hashed automatically)</p>
-          <a href="#" onclick="downloadSample('users')" class="sample-link">⬇ Download sample CSV</a>
-          <div class="file-drop" id="drop-users"
-               onclick="document.getElementById('file-users').click()"
-               ondragover="event.preventDefault()" ondrop="handleDrop(event,'users')">
-            <span id="drop-users-label">Click or drag CSV / Excel here</span>
-          </div>
-          <input type="file" id="file-users" accept=".csv,.xlsx,.xls" class="hidden"
-                 onchange="uploadFile('users', this)" />
-          <div id="result-users" class="result-box hidden"></div>
-        </div>
-
+      <!-- Mode toggle -->
+      <div class="upload-mode-bar">
+        <button class="upload-mode-btn active" id="mode-bulk-btn"
+                onclick="setUploadMode('bulk')">📂 Bulk Upload (CSV / Excel)</button>
+        <button class="upload-mode-btn" id="mode-single-btn"
+                onclick="setUploadMode('single')">➕ Add Single Record</button>
       </div>
+
+      <!-- ── BULK UPLOAD ── -->
+      <div id="bulk-upload-section">
+        <div class="upload-grid">
+
+          <div class="card upload-card">
+            <div class="upload-icon">👥</div>
+            <h2>Student List</h2>
+            <p>PRN, Name, Class, Division, Mobile, Parent Email</p>
+            <a href="#" onclick="downloadSample('students')" class="sample-link">⬇ Download sample CSV</a>
+            <div class="file-drop" id="drop-students"
+                 onclick="document.getElementById('file-students').click()"
+                 ondragover="event.preventDefault()" ondrop="handleDrop(event,'students')">
+              <span id="drop-students-label">Click or drag CSV / Excel here</span>
+            </div>
+            <input type="file" id="file-students" accept=".csv,.xlsx,.xls" class="hidden"
+                   onchange="uploadFile('students', this)" />
+            <div id="result-students" class="result-box hidden"></div>
+          </div>
+
+          <div class="card upload-card">
+            <div class="upload-icon">👨‍🏫</div>
+            <h2>Faculty List</h2>
+            <p>Faculty ID, Name, Department, Subject, Email</p>
+            <a href="#" onclick="downloadSample('faculty')" class="sample-link">⬇ Download sample CSV</a>
+            <div class="file-drop" id="drop-faculty"
+                 onclick="document.getElementById('file-faculty').click()"
+                 ondragover="event.preventDefault()" ondrop="handleDrop(event,'faculty')">
+              <span id="drop-faculty-label">Click or drag CSV / Excel here</span>
+            </div>
+            <input type="file" id="file-faculty" accept=".csv,.xlsx,.xls" class="hidden"
+                   onchange="uploadFile('faculty', this)" />
+            <div id="result-faculty" class="result-box hidden"></div>
+          </div>
+
+          <div class="card upload-card">
+            <div class="upload-icon">📚</div>
+            <h2>Subject / Course List</h2>
+            <p>Subject Code, Name, Credits, Faculty Assigned</p>
+            <a href="#" onclick="downloadSample('subjects')" class="sample-link">⬇ Download sample CSV</a>
+            <div class="file-drop" id="drop-subjects"
+                 onclick="document.getElementById('file-subjects').click()"
+                 ondragover="event.preventDefault()" ondrop="handleDrop(event,'subjects')">
+              <span id="drop-subjects-label">Click or drag CSV / Excel here</span>
+            </div>
+            <input type="file" id="file-subjects" accept=".csv,.xlsx,.xls" class="hidden"
+                   onchange="uploadFile('subjects', this)" />
+            <div id="result-subjects" class="result-box hidden"></div>
+          </div>
+
+          <div class="card upload-card">
+            <div class="upload-icon">📋</div>
+            <h2>Lesson / Teaching Plan</h2>
+            <p>Unit, Topic, Planned Date, Hours, CO, Bloom's</p>
+            <a href="#" onclick="downloadSample('lesson_plan')" class="sample-link">⬇ Download sample CSV</a>
+            <div class="file-drop" id="drop-lesson_plan"
+                 onclick="document.getElementById('file-lesson_plan').click()"
+                 ondragover="event.preventDefault()" ondrop="handleDrop(event,'lesson_plan')">
+              <span id="drop-lesson_plan-label">Click or drag CSV / Excel here</span>
+            </div>
+            <input type="file" id="file-lesson_plan" accept=".csv,.xlsx,.xls" class="hidden"
+                   onchange="uploadFile('lesson_plan', this)" />
+            <div id="result-lesson_plan" class="result-box hidden"></div>
+          </div>
+
+          <!-- Admin only -->
+          <div class="card upload-card" id="upload-users-card" style="display:none">
+            <div class="upload-icon">🔐</div>
+            <h2>User Accounts</h2>
+            <p>ID, Name, Role, Email, Password (plain — hashed automatically)</p>
+            <a href="#" onclick="downloadSample('users')" class="sample-link">⬇ Download sample CSV</a>
+            <div class="file-drop" id="drop-users"
+                 onclick="document.getElementById('file-users').click()"
+                 ondragover="event.preventDefault()" ondrop="handleDrop(event,'users')">
+              <span id="drop-users-label">Click or drag CSV / Excel here</span>
+            </div>
+            <input type="file" id="file-users" accept=".csv,.xlsx,.xls" class="hidden"
+                   onchange="uploadFile('users', this)" />
+            <div id="result-users" class="result-box hidden"></div>
+          </div>
+
+        </div>
+      </div><!-- /bulk -->
+
+      <!-- ── SINGLE ENTRY ── -->
+      <div id="single-upload-section" style="display:none">
+        <div class="card" style="max-width:660px">
+
+          <label>Data Type</label>
+          <select id="single-type" onchange="renderSingleForm(this.value)">
+            <option value="students">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="subjects">Subject / Course</option>
+            <option value="lesson_plan">Lesson Plan (Topic)</option>
+            <option value="users" id="single-type-users">User Account</option>
+          </select>
+
+          <div id="single-form-fields" style="margin-top:16px"></div>
+
+          <div id="single-result" class="result-box hidden" style="margin-top:12px"></div>
+
+          <button class="btn primary" style="margin-top:16px;width:100%"
+                  onclick="submitSingle()">➕ Add Record</button>
+        </div>
+      </div><!-- /single -->
+
     </section>
 
     <!-- ── ATTENDANCE ─────────────────────────────────────────── -->
